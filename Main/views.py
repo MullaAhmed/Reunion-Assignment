@@ -74,7 +74,7 @@ class PostApiView(APIView):
             title=request.data.get('title')
             description=request.data.get('description')
             post=Post.objects.create(user=user,title=title,description=description,comment=[])
-            return response.Response({'Post-ID':post.id,'Title':post.title,'Description':post.description,'Created At':post.created_at},status=status.HTTP_200_OK)
+            return response.Response({'Post-ID':post.id,'Title':post.title,'Description':post.description,'Created At':post.created_at},status=status.HTTP_201_CREATED)
         except:
             return response.Response({'message':'Invalid Data, both Title and Description are required'},status=status.HTTP_400_BAD_REQUEST)
 
@@ -152,6 +152,6 @@ class CommentApiView(APIView):
             post=Post.objects.get(id=pid)
             post.comment.append({'user':user.email,'comment':comment})
             post.save()
-            return response.Response(len(list(post.comment)),status=status.HTTP_200_OK)
+            return response.Response(len(list(post.comment)),status=status.HTTP_201_CREATED)
         else:
             return response.Response({'message':'Post not found'},status=status.HTTP_404_NOT_FOUND)

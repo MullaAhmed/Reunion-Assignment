@@ -38,9 +38,6 @@ class Tests(APITestCase):
         self.authenticate(name="test",email="test@gmail.com",password="test@123")
         self.dummy_user(name="follow",email="follow@gmail.com",password="test@123")
 
-        print(UserProfile.objects.filter().all()[1])
-
-
         follow=self.client.post(reverse("follow",kwargs={"id":2}))
         resp=self.client.get(reverse("user"))
 
@@ -53,12 +50,8 @@ class Tests(APITestCase):
         self.authenticate(name="test",email="test@gmail.com",password="test@123")
         self.dummy_user(name="unfollow",email="unfollow@gmail.com",password="test@123")
 
-        print(UserProfile.objects.filter().all())
-
         follow=self.client.post(reverse("follow",kwargs={"id":2}))
         resp=self.client.get(reverse("user"))
-
-        print(follow.data)
 
         self.assertEqual(follow.status_code,status.HTTP_200_OK)
         self.assertEqual(resp.data['following'],1)
@@ -71,6 +64,58 @@ class Tests(APITestCase):
         self.assertEqual(resp.data['following'],0)
         self.assertEqual(len(list(UserProfile.objects.filter(id=2).first().followers.all())),0)
 
-
+    def test_create_post(self):
+        self.authenticate(name="test",email="test@gmail.com",password="test@123")
+        resp=self.client.post(reverse("post"),{"title":"Test Post 1","description":"This is post 1 by user 1"})
+        self.assertEqual(resp.status_code,status.HTTP_201_CREATED)
     
+    def test_delete_post(self):
+        self.authenticate(name="test",email="test@gmail.com",password="test@123")
+        resp=self.client.post(reverse("post"),{"title":"Test Post 1","description":"This is post 1 by user 1"})
+        self.assertEqual(resp.status_code,status.HTTP_201_CREATED)
+
+        resp=self.client.delete(reverse("post_detail",kwargs={"id":1}))
+        self.assertEqual(resp.status_code,status.HTTP_204_NO_CONTENT)
+
+    def test_comment(self):
+        self.authenticate(name="test",email="test@gmail.com",password="test@123")
+        resp=self.client.post(reverse("post"),{"title":"Test Post 1","description":"This is post 1 by user 1"})
+        self.assertEqual(resp.status_code,status.HTTP_201_CREATED)
+
+        resp=self.client.post(reverse("comment",kwargs={"id":1}),{"comment":"This is comment 1"})
+        self.assertEqual(resp.status_code,status.HTTP_201_CREATED)
+    
+    def test_user_authentication_with_a_field_missing(self):
+        user=User.objects.create_user(name="test",email="test@gmail.com",password="test@123")
+        resp=self.client.post(reverse('Login'),{"password": "test@123"})
+        self.assertEqual(resp.status_code,status.HTTP_403_FORBIDDEN)
+
+    def test_create_post_with_a_field_missing(self):
+        self.authenticate(name="test",email="test@gmail.com",password="test@123")
+        resp=self.client.post(reverse("post"),{"description":"This is post 1 by user 1"})
+        self.assertEqual(resp.status_code,status.HTTP_400_BAD_REQUEST)
+    
+    def test_get_single_post_with_wrong_id(self):
+        self.authenticate(name="test",email="test@gmail.com",password="test@123")
+        resp=self.client.post(reverse("post"),{"title":"Test Post 1","description":"This is post 1 by user 1"})
+        self.assertEqual(resp.status_code,status.HTTP_201_CREATED)
+    
+        resp=self.client.get(reverse("post_detail",kwargs={"id":2}))
+        self.assertEqual(resp.status_code,status.HTTP_404_NOT_FOUND)
+
+    def test_delete_post_with_a_field_missing(self):
+        self.authenticate(name="test",email="test@gmail.com",password="test@123")
+        resp=self.client.post(reverse("post"),{"title":"Test Post 1","description":"This is post 1 by user 1"})
+        self.assertEqual(resp.status_code,status.HTTP_201_CREATED)
+
+        resp=self.client.delete(reverse("post_detail",kwargs={"id":2}))
+        self.assertEqual(resp.status_code,status.HTTP_404_NOT_FOUND)
+
+    def test_comment_with_a_field_missing(self):
+        self.authenticate(name="test",email="test@gmail.com",password="test@123")
+        resp=self.client.post(reverse("post"),{"title":"Test Post 1","description":"This is post 1 by user 1"})
+        self.assertEqual(resp.status_code,status.HTTP_201_CREATED)
+
+        resp=self.client.post(reverse("comment",kwargs={"id":2}),{"comment":"This is comment 1"})
+        self.assertEqual(resp.status_code,status.HTTP_404_NOT_FOUND)
     
