@@ -1,0 +1,7 @@
+SECRET_KEY=django-insecure-j)5i2pieb#&2(6&y8b_kjrmhu0o)i(--b0u5&j7p!$&uyc9wl1
+NAME= main
+USER = postgres
+PASSWORD= admin
+PORT = 5432
+HOST = localhost
+
